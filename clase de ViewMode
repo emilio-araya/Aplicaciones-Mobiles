@@ -1,0 +1,18 @@
+Actividad 2.3 
+clase de ViewModel  en android 
+
+La clase ViewModel es una lógica empresarial o un contenedor de estado a nivel de pantalla. Expone el estado a la IU y encapsula la lógica empresarial relacionada.
+Su principal ventaja es que almacena en caché el estado y lo conserva durante los cambios de configuración.
+Esto significa que la IU no tiene que recuperar datos cuando navegas entre actividades o si sigues cambios de configuración, como cuando rotas la pantalla
+
+
+Beneficios de ViewModel
+
+La alternativa a un ViewModel es una clase simple que contiene los datos que muestras en tu IU. Esto puede convertirse en un problema cuando navegas entre actividades o destinos de Navigation. 
+Si lo haces, esos datos se destruirán si no los almacenas con el mecanismo de guardado de estado de instancias. ViewModel proporciona una API conveniente para la persistencia de datos que resuelve este problema.
+
+Los beneficios clave de la clase ViewModel son básicamente dos:
+
+Te permite conservar el estado de la IU.
+Proporciona acceso a la lógica empresarial.
+
