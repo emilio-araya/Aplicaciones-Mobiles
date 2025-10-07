@@ -14,5 +14,101 @@ Si lo haces, esos datos se destruirán si no los almacenas con el mecanismo de g
 Los beneficios clave de la clase ViewModel son básicamente dos:
 
 Te permite conservar el estado de la IU.
-Proporciona acceso a la lógica empresarial.
+Proporciona acceso a la lógica empresarial
+
+1. Definición del ContadorViewModel (Kotlin)
+El ViewModel contiene el dato (_contador) y la lógica para modificarlo (incrementarContador). Usamos LiveData para que el dato sea observable por la IU.
+
+Kotlin
+
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+
+// 1. La clase debe heredar de ViewModel
+class ContadorViewModel : ViewModel() {
+
+    // 2. MutableLiveData es donde se guarda el dato de forma interna.
+    // Usamos 'private' para que solo el ViewModel pueda cambiar su valor.
+    private val _contador = MutableLiveData<Int>()
+
+    // 3. LiveData es la versión pública (inmutable) del dato.
+    // La Activity/Fragment solo puede 'observar' este dato, no cambiarlo.
+    val contador: LiveData<Int> = _contador
+
+    // 4. Inicializamos el contador al crear el ViewModel
+    init {
+        _contador.value = 0
+    }
+
+    // 5. Lógica de Negocio: Método para modificar el estado
+    fun incrementarContador() {
+        _contador.value = (_contador.value ?: 0) + 1
+    }
+}
+
+
+2. Uso en una Activity (Kotlin)
+La Activity solicita la instancia del ViewModel y luego observa el LiveData para actualizar la IU.
+
+Kotlin
+
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider // Necesario para obtener el ViewModel
+
+class MainActivity : AppCompatActivity() {
+
+    // 1. Declaración del ViewModel
+    private lateinit var viewModel: ContadorViewModel
+    private lateinit var contadorTextView: TextView
+    private lateinit var botonIncrementar: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        contadorTextView = findViewById(R.id.text_contador)
+        botonIncrementar = findViewById(R.id.boton_incrementar)
+
+        // 2. OBTENER LA INSTANCIA del ViewModel.
+        // El sistema se encarga de crearla o devolver la ya existente (la que sobrevive a rotaciones).
+        viewModel = ViewModelProvider(this).get(ContadorViewModel::class.java)
+
+        // 3. OBSERVACIÓN del LiveData
+        // Cada vez que 'viewModel.contador' cambie, este bloque se ejecuta
+        // y actualiza el TextView.
+        viewModel.contador.observe(this) { nuevoValor ->
+            contadorTextView.text = "Contador: $nuevoValor"
+        }
+
+        // 4. Conexión del evento de la IU a la Lógica del ViewModel
+        botonIncrementar.setOnClickListener {
+            viewModel.incrementarContador() // Llama al método del ViewModel
+        }
+    }
+}
+Resumen del Flujo 🔄
+Inicio: Cuando la MainActivity se crea, solicita un ContadorViewModel.
+
+Dato: El ViewModel inicializa su _contador interno a 0.
+
+Observación: La Activity se suscribe a los cambios del viewModel.contador. Muestra "Contador: 0".
+
+Interacción: El usuario toca el botón.
+
+Lógica: La Activity llama a viewModel.incrementarContador(). El ViewModel incrementa su valor interno a 1.
+
+Actualización: Como el valor de _contador (que es LiveData) ha cambiado, notifica a la Activity (al bloque observe). La Activity actualiza el TextView a "Contador: 1".
+
+💡 La Ventaja Clave en Acción
+Si rotas la pantalla (o cierras y vuelves a abrir la Activity con el botón de atrás):
+
+La MainActivity es destruida y recreada.
+
+Sin embargo, cuando ViewModelProvider(this).get(...) es llamado de nuevo, devuelve la misma instancia de ContadorViewModel que ya existía.
+
+Dado que el _contador en el ViewModel sigue siendo 1, la nueva Activity lo observa inmediatamente y muestra "Contador: 1" sin perder el estado.
 
